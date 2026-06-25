@@ -1,10 +1,13 @@
 const consoleOutput = document.getElementById("consoleOutput");
 const consoleInput = document.getElementById("consoleInput");
+
 const runButton = document.getElementById("runButton");
 const clearButton = document.getElementById("clearButton");
 const openButton = document.getElementById("openButton");
 const saveButton = document.getElementById("saveButton");
 const saveAsButton = document.getElementById("saveAsButton");
+const themeButton = document.getElementById("themeButton");
+
 const fileInput = document.getElementById("fileInput");
 const fileNameText = document.getElementById("fileNameText");
 const sandboxFrame = document.getElementById("sandboxFrame");
@@ -20,7 +23,6 @@ let currentFileName = "script.js";
 
 const codeEditor = CodeMirror.fromTextArea(document.getElementById("codeEditor"), {
   mode: "javascript",
-  theme: "mini-dark",
   lineNumbers: true,
   tabSize: 2,
   indentUnit: 2,
@@ -49,19 +51,53 @@ const codeEditor = CodeMirror.fromTextArea(document.getElementById("codeEditor")
   }
 });
 
-const defaultCode = `console.log("JavaScript funguje!");
+const defaultCode = `console.log("JavaScript is working!");
 
-function SayAhoj() {
-  console.log("Ahoj");
+function sayHello() {
+  console.log("Hello from function");
 }
 
-SayAhoj();
+sayHello();
 
-let cislo = 10;
-console.log("Číslo je:", cislo);
+let number = 10;
+console.log("Number is:", number);
 `;
 
 codeEditor.setValue(defaultCode);
+
+function applyTheme(themeName) {
+  if (themeName === "light") {
+    document.body.classList.remove("dark-theme");
+    document.body.classList.add("light-theme");
+    themeButton.textContent = "Dark";
+    localStorage.setItem("mini-js-editor-theme", "light");
+  } else {
+    document.body.classList.remove("light-theme");
+    document.body.classList.add("dark-theme");
+    themeButton.textContent = "Light";
+    localStorage.setItem("mini-js-editor-theme", "dark");
+  }
+
+  codeEditor.refresh();
+}
+
+function toggleTheme() {
+  if (document.body.classList.contains("dark-theme")) {
+    applyTheme("light");
+  } else {
+    applyTheme("dark");
+  }
+}
+
+function loadSavedTheme() {
+  const savedTheme = localStorage.getItem("mini-js-editor-theme");
+
+  if (savedTheme === "light") {
+    applyTheme("light");
+  } else {
+    applyTheme("dark");
+  }
+}
 
 function updateFileNameText() {
   fileNameText.textContent = currentFileName;
@@ -134,7 +170,7 @@ function runCode() {
 
   const userCode = codeEditor.getValue();
 
-  addConsoleLine("Spouštím " + currentFileName + "...", "system");
+  addConsoleLine("Running " + currentFileName + "...", "system");
 
   const html = `
 <!DOCTYPE html>
@@ -180,7 +216,7 @@ function runCode() {
 
   function sendToParent(type, values) {
     parent.postMessage({
-      source: "mini-js-console",
+      source: "mini-js-editor",
       type: type,
       values: values.map(formatValue)
     }, "*");
@@ -204,13 +240,13 @@ function runCode() {
 
   window.addEventListener("error", function(event) {
     sendToParent("error", [
-      "Chyba: " + event.message + " na řádku " + event.lineno
+      "Error: " + event.message + " on line " + event.lineno
     ]);
   });
 
   window.addEventListener("unhandledrejection", function(event) {
     sendToParent("error", [
-      "Promise chyba: " + event.reason
+      "Promise error: " + event.reason
     ]);
   });
 })();
@@ -245,7 +281,7 @@ function executeConsoleCommand() {
     const iframeWindow = sandboxFrame.contentWindow;
 
     if (!iframeWindow) {
-      addConsoleLine("Konzole ještě není připravená.", "error");
+      addConsoleLine("Console is not ready yet.", "error");
       return;
     }
 
@@ -280,7 +316,7 @@ async function openFile() {
         multiple: false,
         types: [
           {
-            description: "Textové a JavaScript soubory",
+            description: "Text and JavaScript files",
             accept: {
               "text/plain": [".js", ".txt", ".html", ".css", ".json"]
             }
@@ -298,12 +334,12 @@ async function openFile() {
       codeEditor.setValue(text);
       updateFileNameText();
 
-      addConsoleLine("Otevřen soubor: " + currentFileName, "system");
+      addConsoleLine("Opened file: " + currentFileName, "system");
 
       runCode();
     } catch (error) {
       if (error.name !== "AbortError") {
-        addConsoleLine("Nepodařilo se otevřít soubor: " + error.message, "error");
+        addConsoleLine("Could not open file: " + error.message, "error");
       }
     }
 
@@ -323,10 +359,10 @@ async function saveFile() {
       await writable.write(text);
       await writable.close();
 
-      addConsoleLine("Uloženo: " + currentFileName, "system");
+      addConsoleLine("Saved: " + currentFileName, "system");
       return;
     } catch (error) {
-      addConsoleLine("Nepodařilo se uložit přímo do souboru: " + error.message, "error");
+      addConsoleLine("Could not save directly to file: " + error.message, "error");
     }
   }
 
@@ -342,7 +378,7 @@ async function saveAsFile() {
         suggestedName: currentFileName,
         types: [
           {
-            description: "JavaScript soubor",
+            description: "JavaScript file",
             accept: {
               "text/plain": [".js", ".txt", ".html", ".css", ".json"]
             }
@@ -360,10 +396,10 @@ async function saveAsFile() {
 
       updateFileNameText();
 
-      addConsoleLine("Uloženo jako: " + currentFileName, "system");
+      addConsoleLine("Saved as: " + currentFileName, "system");
     } catch (error) {
       if (error.name !== "AbortError") {
-        addConsoleLine("Nepodařilo se uložit soubor: " + error.message, "error");
+        addConsoleLine("Could not save file: " + error.message, "error");
       }
     }
 
@@ -390,11 +426,11 @@ function downloadFile(fileName, text) {
 
   URL.revokeObjectURL(url);
 
-  addConsoleLine("Soubor stažen jako: " + fileName, "system");
+  addConsoleLine("Downloaded file as: " + fileName, "system");
 }
 
 window.addEventListener("message", function (event) {
-  if (!event.data || event.data.source !== "mini-js-console") {
+  if (!event.data || event.data.source !== "mini-js-editor") {
     return;
   }
 
@@ -405,12 +441,12 @@ window.addEventListener("message", function (event) {
 });
 
 codeEditor.on("change", function () {
-  statusText.textContent = "Čekám na dopsání...";
+  statusText.textContent = "Waiting for typing to stop...";
 
   clearTimeout(liveUpdateTimeout);
 
   liveUpdateTimeout = setTimeout(function () {
-    statusText.textContent = "Live update zapnutý";
+    statusText.textContent = "Live update enabled";
     runCode();
   }, 600);
 });
@@ -472,13 +508,13 @@ fileInput.addEventListener("change", function () {
     codeEditor.setValue(String(reader.result));
     updateFileNameText();
 
-    addConsoleLine("Otevřen soubor: " + currentFileName, "system");
+    addConsoleLine("Opened file: " + currentFileName, "system");
 
     runCode();
   };
 
   reader.onerror = function () {
-    addConsoleLine("Nepodařilo se načíst soubor.", "error");
+    addConsoleLine("Could not read file.", "error");
   };
 
   reader.readAsText(file);
@@ -504,6 +540,10 @@ clearButton.addEventListener("click", function () {
   clearConsole();
 });
 
+themeButton.addEventListener("click", function () {
+  toggleTheme();
+});
+
 document.addEventListener("keydown", function (event) {
   if (event.ctrlKey && event.key.toLowerCase() === "s") {
     event.preventDefault();
@@ -516,5 +556,6 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
+loadSavedTheme();
 updateFileNameText();
 runCode();
