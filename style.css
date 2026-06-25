@@ -4,11 +4,19 @@
 
 body {
   margin: 0;
-  background: #111;
-  color: rgb(255, 255, 255);
   font-family: Arial, sans-serif;
   height: 100vh;
   overflow: hidden;
+}
+
+body.dark-theme {
+  background: #000000;
+  color: #ffffff;
+}
+
+body.light-theme {
+  background: #f3f3f3;
+  color: #111111;
 }
 
 .app {
@@ -16,20 +24,33 @@ body {
   grid-template-columns: 1fr 1fr;
   height: 100vh;
   gap: 2px;
-  background: #333;
+}
+
+.dark-theme .app {
+  background: #333333;
+}
+
+.light-theme .app {
+  background: #cfcfcf;
 }
 
 .panel {
   display: flex;
   flex-direction: column;
   min-width: 0;
+}
+
+.dark-theme .panel {
   background: #181818;
+}
+
+.light-theme .panel {
+  background: #ffffff;
 }
 
 .top-bar {
   height: 46px;
-  background: #252526;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -37,10 +58,27 @@ body {
   gap: 10px;
 }
 
+.dark-theme .top-bar {
+  background: #252526;
+  border-bottom-color: #333333;
+}
+
+.light-theme .top-bar {
+  background: #eeeeee;
+  border-bottom-color: #d0d0d0;
+}
+
 .file-name {
   font-weight: bold;
-  color: #e6e6e6;
   white-space: nowrap;
+}
+
+.dark-theme .file-name {
+  color: #e6e6e6;
+}
+
+.light-theme .file-name {
+  color: #222222;
 }
 
 .buttons {
@@ -64,92 +102,212 @@ button:hover {
 }
 
 #clearButton {
-  background: #444;
+  background: #444444;
 }
 
 #clearButton:hover {
-  background: #555;
+  background: #555555;
+}
+
+#themeButton {
+  background: #6c5ce7;
+}
+
+#themeButton:hover {
+  background: #7d6cff;
 }
 
 #statusText {
-  color: #8effa0;
   font-size: 13px;
   white-space: nowrap;
 }
 
-/* CodeMirror editor */
+.dark-theme #statusText {
+  color: #8effa0;
+}
+
+.light-theme #statusText {
+  color: #007a24;
+}
+
+/* CodeMirror base */
 
 .CodeMirror {
   flex: 1;
-  height: auto;
-  background: #1e1e1e;
-  color: #000000;
+  height: auto !important;
   font-family: Consolas, monospace;
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: 17px;
+  line-height: 1.55;
 }
 
-.CodeMirror-gutters {
-  background: #1e1e1e;
-  border-right: 1px solid #333;
-}
-
-.CodeMirror-linenumber {
-  color: #858585;
+.CodeMirror-scroll,
+.CodeMirror-sizer,
+.CodeMirror-lines {
+  min-height: 100%;
 }
 
 .CodeMirror-cursor {
-  border-left: 2px solid #ffffff;
+  border-left: 2px solid;
 }
 
-.CodeMirror-selected {
-  background: #264f78 !important;
+.CodeMirror-gutters {
+  border-right: 1px solid;
 }
 
-/* JavaScript syntax colors, podobné VS Code Dark */
+/* Dark editor */
 
-.cm-s-mini-dark .cm-keyword {
-  color: #c586c0;
+.dark-theme .editor-panel {
+  background: #000000;
 }
 
-.cm-s-mini-dark .cm-def {
-  color: #dcdcaa;
+.dark-theme .CodeMirror,
+.dark-theme .CodeMirror-scroll,
+.dark-theme .CodeMirror-sizer,
+.dark-theme .CodeMirror-lines {
+  background: #000000 !important;
+  color: #eeeeee !important;
 }
 
-.cm-s-mini-dark .cm-variable {
-  color: #9cdcfe;
+.dark-theme .CodeMirror-gutters {
+  background: #050505 !important;
+  border-right-color: #222222;
 }
 
-.cm-s-mini-dark .cm-variable-2 {
-  color: #9cdcfe;
+.dark-theme .CodeMirror-linenumber {
+  color: #666666;
 }
 
-.cm-s-mini-dark .cm-property {
-  color: #9cdcfe;
+.dark-theme .CodeMirror-cursor {
+  border-left-color: #ffffff;
 }
 
-.cm-s-mini-dark .cm-string {
-  color: #ce9178;
+.dark-theme .CodeMirror-selected {
+  background: #263850 !important;
 }
 
-.cm-s-mini-dark .cm-number {
-  color: #b5cea8;
+/* Light editor */
+
+.light-theme .editor-panel {
+  background: #ffffff;
 }
 
-.cm-s-mini-dark .cm-comment {
-  color: #6a9955;
+.light-theme .CodeMirror,
+.light-theme .CodeMirror-scroll,
+.light-theme .CodeMirror-sizer,
+.light-theme .CodeMirror-lines {
+  background: #ffffff !important;
+  color: #111111 !important;
 }
 
-.cm-s-mini-dark .cm-operator {
-  color: #d4d4d4;
+.light-theme .CodeMirror-gutters {
+  background: #f2f2f2 !important;
+  border-right-color: #d0d0d0;
 }
 
-.cm-s-mini-dark .cm-builtin {
-  color: #4ec9b0;
+.light-theme .CodeMirror-linenumber {
+  color: #888888;
 }
 
-.cm-s-mini-dark .cm-atom {
-  color: #569cd6;
+.light-theme .CodeMirror-cursor {
+  border-left-color: #111111;
+}
+
+.light-theme .CodeMirror-selected {
+  background: #cce5ff !important;
+}
+
+/* Dark JavaScript syntax colors */
+
+.dark-theme .cm-keyword {
+  color: #ff79c6;
+}
+
+.dark-theme .cm-def {
+  color: #f1fa8c;
+}
+
+.dark-theme .cm-variable,
+.dark-theme .cm-variable-2 {
+  color: #8be9fd;
+}
+
+.dark-theme .cm-property {
+  color: #50fa7b;
+}
+
+.dark-theme .cm-string {
+  color: #f1fa8c;
+}
+
+.dark-theme .cm-number {
+  color: #bd93f9;
+}
+
+.dark-theme .cm-comment {
+  color: #6272a4;
+}
+
+.dark-theme .cm-operator {
+  color: #ffb86c;
+}
+
+.dark-theme .cm-builtin {
+  color: #8be9fd;
+}
+
+.dark-theme .cm-atom {
+  color: #bd93f9;
+}
+
+.dark-theme .cm-bracket {
+  color: #eeeeee;
+}
+
+/* Light JavaScript syntax colors */
+
+.light-theme .cm-keyword {
+  color: #0000ff;
+}
+
+.light-theme .cm-def {
+  color: #795e26;
+}
+
+.light-theme .cm-variable,
+.light-theme .cm-variable-2 {
+  color: #001080;
+}
+
+.light-theme .cm-property {
+  color: #0070c1;
+}
+
+.light-theme .cm-string {
+  color: #a31515;
+}
+
+.light-theme .cm-number {
+  color: #098658;
+}
+
+.light-theme .cm-comment {
+  color: #008000;
+}
+
+.light-theme .cm-operator {
+  color: #000000;
+}
+
+.light-theme .cm-builtin {
+  color: #267f99;
+}
+
+.light-theme .cm-atom {
+  color: #0000ff;
+}
+
+.light-theme .cm-bracket {
+  color: #111111;
 }
 
 /* Console */
@@ -166,60 +324,95 @@ button:hover {
   min-height: 0;
   padding: 14px;
   overflow-y: auto;
-  background: #050505;
   font-family: Consolas, monospace;
   font-size: 15px;
 }
 
+.dark-theme #consoleOutput {
+  background: #050505;
+}
+
+.light-theme #consoleOutput {
+  background: #ffffff;
+}
+
 .console-line {
   padding: 6px 8px;
-  border-bottom: 1px solid #1d1d1d;
+  border-bottom: 1px solid;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
-.console-log {
+.dark-theme .console-line {
+  border-bottom-color: #1d1d1d;
+}
+
+.light-theme .console-line {
+  border-bottom-color: #e5e5e5;
+}
+
+.dark-theme .console-log {
   color: #dcdcdc;
 }
 
+.light-theme .console-log {
+  color: #222222;
+}
+
 .console-warn {
-  color: #ffd166;
+  color: #d98c00;
 }
 
 .console-error {
-  color: #ff5c5c;
+  color: #ff4d4d;
 }
 
 .console-info {
-  color: #6ecbff;
+  color: #1890ff;
 }
 
 .console-system {
-  color: #8effa0;
+  color: #00a832;
 }
 
 .console-command {
-  color: #c792ea;
+  color: #9b59b6;
 }
 
 .console-result {
-  color: #82aaff;
+  color: #1f6feb;
 }
 
 .console-input-bar {
   height: 44px;
-  background: #111;
-  border-top: 1px solid #333;
+  border-top: 1px solid;
   display: flex;
   align-items: center;
   padding: 0 12px;
   font-family: Consolas, monospace;
 }
 
+.dark-theme .console-input-bar {
+  background: #111111;
+  border-top-color: #333333;
+}
+
+.light-theme .console-input-bar {
+  background: #f5f5f5;
+  border-top-color: #d0d0d0;
+}
+
 .console-prompt {
-  color: #8effa0;
   margin-right: 10px;
   font-weight: bold;
+}
+
+.dark-theme .console-prompt {
+  color: #8effa0;
+}
+
+.light-theme .console-prompt {
+  color: #007a24;
 }
 
 #consoleInput {
@@ -227,13 +420,20 @@ button:hover {
   background: transparent;
   border: none;
   outline: none;
-  color: #e6e6e6;
   font-family: Consolas, monospace;
   font-size: 15px;
 }
 
+.dark-theme #consoleInput {
+  color: #e6e6e6;
+}
+
+.light-theme #consoleInput {
+  color: #111111;
+}
+
 #consoleInput::placeholder {
-  color: #666;
+  color: #777777;
 }
 
 #sandboxFrame {
