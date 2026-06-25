@@ -1,0 +1,241 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #111;
+  color: rgb(255, 255, 255);
+  font-family: Arial, sans-serif;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 100vh;
+  gap: 2px;
+  background: #333;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: #181818;
+}
+
+.top-bar {
+  height: 46px;
+  background: #252526;
+  border-bottom: 1px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  gap: 10px;
+}
+
+.file-name {
+  font-weight: bold;
+  color: #e6e6e6;
+  white-space: nowrap;
+}
+
+.buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+button {
+  background: #0e639c;
+  color: white;
+  border: none;
+  padding: 7px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+button:hover {
+  background: #1177bb;
+}
+
+#clearButton {
+  background: #444;
+}
+
+#clearButton:hover {
+  background: #555;
+}
+
+#statusText {
+  color: #8effa0;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+/* CodeMirror editor */
+
+.CodeMirror {
+  flex: 1;
+  height: auto;
+  background: #1e1e1e;
+  color: #000000;
+  font-family: Consolas, monospace;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.CodeMirror-gutters {
+  background: #1e1e1e;
+  border-right: 1px solid #333;
+}
+
+.CodeMirror-linenumber {
+  color: #858585;
+}
+
+.CodeMirror-cursor {
+  border-left: 2px solid #ffffff;
+}
+
+.CodeMirror-selected {
+  background: #264f78 !important;
+}
+
+/* JavaScript syntax colors, podobné VS Code Dark */
+
+.cm-s-mini-dark .cm-keyword {
+  color: #c586c0;
+}
+
+.cm-s-mini-dark .cm-def {
+  color: #dcdcaa;
+}
+
+.cm-s-mini-dark .cm-variable {
+  color: #9cdcfe;
+}
+
+.cm-s-mini-dark .cm-variable-2 {
+  color: #9cdcfe;
+}
+
+.cm-s-mini-dark .cm-property {
+  color: #9cdcfe;
+}
+
+.cm-s-mini-dark .cm-string {
+  color: #ce9178;
+}
+
+.cm-s-mini-dark .cm-number {
+  color: #b5cea8;
+}
+
+.cm-s-mini-dark .cm-comment {
+  color: #6a9955;
+}
+
+.cm-s-mini-dark .cm-operator {
+  color: #d4d4d4;
+}
+
+.cm-s-mini-dark .cm-builtin {
+  color: #4ec9b0;
+}
+
+.cm-s-mini-dark .cm-atom {
+  color: #569cd6;
+}
+
+/* Console */
+
+.console-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+#consoleOutput {
+  flex: 1;
+  min-height: 0;
+  padding: 14px;
+  overflow-y: auto;
+  background: #050505;
+  font-family: Consolas, monospace;
+  font-size: 15px;
+}
+
+.console-line {
+  padding: 6px 8px;
+  border-bottom: 1px solid #1d1d1d;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.console-log {
+  color: #dcdcdc;
+}
+
+.console-warn {
+  color: #ffd166;
+}
+
+.console-error {
+  color: #ff5c5c;
+}
+
+.console-info {
+  color: #6ecbff;
+}
+
+.console-system {
+  color: #8effa0;
+}
+
+.console-command {
+  color: #c792ea;
+}
+
+.console-result {
+  color: #82aaff;
+}
+
+.console-input-bar {
+  height: 44px;
+  background: #111;
+  border-top: 1px solid #333;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font-family: Consolas, monospace;
+}
+
+.console-prompt {
+  color: #8effa0;
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+#consoleInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #e6e6e6;
+  font-family: Consolas, monospace;
+  font-size: 15px;
+}
+
+#consoleInput::placeholder {
+  color: #666;
+}
+
+#sandboxFrame {
+  display: none;
+}

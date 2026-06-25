@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <title>Mini JavaScript Editor</title>
+
+  <link rel="stylesheet" href="./style.css">
+
+  <!-- CodeMirror editor -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+</head>
+<body>
+
+  <div class="app">
+
+    <section class="panel editor-panel">
+      <div class="top-bar">
+        <span id="fileNameText" class="file-name">script.js</span>
+
+        <div class="buttons">
+          <button id="openButton">Open</button>
+          <button id="saveButton">Save</button>
+          <button id="saveAsButton">Save As</button>
+          <button id="runButton">Run</button>
+        </div>
+      </div>
+
+      <textarea id="codeEditor"></textarea>
+    </section>
+
+    <section class="panel console-panel">
+      <div class="top-bar">
+        <span class="file-name">Console</span>
+        <div class="buttons">
+          <span id="statusText">Live update zapnutý</span>
+          <button id="clearButton">Clear</button>
+        </div>
+      </div>
+
+      <div class="console-content">
+        <div id="consoleOutput"></div>
+
+        <div class="console-input-bar">
+          <span class="console-prompt">&gt;</span>
+          <input id="consoleInput" type="text" autocomplete="off" spellcheck="false" placeholder="Napiš příkaz a stiskni Enter...">
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <iframe id="sandboxFrame"></iframe>
+
+  <input id="fileInput" type="file" accept=".js,.txt,.html,.css,.json" hidden>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+
+  <script src="./app.js"></script>
+</body>
+</html>
