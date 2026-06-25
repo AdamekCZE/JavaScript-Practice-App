@@ -1,15 +1,16 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Mini JavaScript Editor</title>
 
-  <link rel="stylesheet" href="./style.css">
-
-  <!-- CodeMirror editor -->
+  <!-- CodeMirror must be loaded before our style.css -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+
+  <!-- Our styles must be loaded after CodeMirror -->
+  <link rel="stylesheet" href="./style.css">
 </head>
-<body>
+<body class="dark-theme">
 
   <div class="app">
 
@@ -22,6 +23,7 @@
           <button id="saveButton">Save</button>
           <button id="saveAsButton">Save As</button>
           <button id="runButton">Run</button>
+          <button id="themeButton">Light</button>
         </div>
       </div>
 
@@ -31,8 +33,9 @@
     <section class="panel console-panel">
       <div class="top-bar">
         <span class="file-name">Console</span>
+
         <div class="buttons">
-          <span id="statusText">Live update zapnutý</span>
+          <span id="statusText">Live update enabled</span>
           <button id="clearButton">Clear</button>
         </div>
       </div>
@@ -42,7 +45,13 @@
 
         <div class="console-input-bar">
           <span class="console-prompt">&gt;</span>
-          <input id="consoleInput" type="text" autocomplete="off" spellcheck="false" placeholder="Napiš příkaz a stiskni Enter...">
+          <input
+            id="consoleInput"
+            type="text"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="Type a command and press Enter..."
+          >
         </div>
       </div>
     </section>
