@@ -21,9 +21,12 @@ body.light-theme {
 
 .app {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, var(--editor-size, 50%)) 6px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   height: 100vh;
   gap: 2px;
+  position: relative;
+  overflow: hidden;
 }
 
 .dark-theme .app {
@@ -38,6 +41,114 @@ body.light-theme {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.editor-panel {
+  order: 1;
+}
+
+.splitter {
+  order: 2;
+  cursor: col-resize;
+}
+
+.console-panel {
+  order: 3;
+}
+
+.app.vertical-layout {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, var(--editor-size, 50%)) 6px minmax(0, 1fr);
+}
+
+.vertical-layout .splitter {
+  cursor: row-resize;
+}
+
+.app.swapped .editor-panel {
+  order: 3;
+}
+
+.app.swapped .console-panel {
+  order: 1;
+}
+
+.app.editor-hidden {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.app.console-hidden {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.app.editor-hidden .editor-panel,
+.app.console-hidden .console-panel,
+.app.editor-hidden .splitter,
+.app.console-hidden .splitter {
+  display: none;
+}
+
+.settings-menu-wrap {
+  position: fixed;
+  left: 12px;
+  top: 5px;
+  z-index: 20;
+}
+
+.settings-button {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 6px;
+  font-size: 19px;
+  line-height: 36px;
+}
+
+.settings-menu {
+  position: absolute;
+  left: 0;
+  top: 40px;
+  width: 160px;
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid;
+  border-radius: 8px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+}
+
+.settings-menu-wrap.open .settings-menu {
+  display: flex;
+}
+
+.dark-theme .settings-menu {
+  background: #1f1f1f;
+  border-color: #3b3b3b;
+}
+
+.light-theme .settings-menu {
+  background: #f8f8f8;
+  border-color: #d7d7d7;
+}
+
+.settings-menu button {
+  width: 100%;
+  text-align: left;
+}
+
+.splitter {
+  background: #333333;
+  min-width: 6px;
+  min-height: 6px;
+}
+
+.light-theme .splitter {
+  background: #cfcfcf;
 }
 
 .dark-theme .panel {
@@ -50,11 +161,12 @@ body.light-theme {
 
 .top-bar {
   height: 46px;
+  flex: 0 0 46px;
   border-bottom: 1px solid;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px;
+  padding: 0 12px 0 56px;
   gap: 10px;
 }
 
@@ -135,15 +247,20 @@ button:hover {
 .CodeMirror {
   flex: 1;
   height: auto !important;
+  min-height: 0;
   font-family: Consolas, monospace;
   font-size: 17px;
   line-height: 1.55;
 }
 
-.CodeMirror-scroll,
+.CodeMirror-scroll {
+  height: 100% !important;
+  overflow: auto !important;
+}
+
 .CodeMirror-sizer,
 .CodeMirror-lines {
-  min-height: 100%;
+  min-height: 0;
 }
 
 .CodeMirror-cursor {
@@ -152,6 +269,10 @@ button:hover {
 
 .CodeMirror-gutters {
   border-right: 1px solid;
+}
+
+.error-line-highlight {
+  background: rgba(255, 77, 77, 0.18);
 }
 
 /* Dark editor */
@@ -317,6 +438,7 @@ button:hover {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  position: relative;
 }
 
 #consoleOutput {
@@ -336,11 +458,41 @@ button:hover {
   background: #ffffff;
 }
 
+.scroll-to-bottom-button {
+  position: absolute;
+  right: 18px;
+  bottom: 58px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  line-height: 1;
+  z-index: 5;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+}
+
+.scroll-to-bottom-button.visible {
+  display: flex;
+}
+
 .console-line {
   padding: 6px 8px;
   border-bottom: 1px solid;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.console-line[data-line-number] {
+  cursor: pointer;
+}
+
+.console-line[data-line-number]::before {
+  content: "Line " attr(data-line-number) " ";
+  font-weight: bold;
 }
 
 .dark-theme .console-line {

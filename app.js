@@ -1,5 +1,6 @@
 const consoleOutput = document.getElementById("consoleOutput");
 const consoleInput = document.getElementById("consoleInput");
+const scrollToBottomButton = document.getElementById("scrollToBottomButton");
 
 const runButton = document.getElementById("runButton");
 const clearButton = document.getElementById("clearButton");
@@ -7,13 +8,25 @@ const openButton = document.getElementById("openButton");
 const saveButton = document.getElementById("saveButton");
 const saveAsButton = document.getElementById("saveAsButton");
 const themeButton = document.getElementById("themeButton");
+const settingsMenuWrap = document.getElementById("settingsMenuWrap");
+const settingsButton = document.getElementById("settingsButton");
+const hideEditorButton = document.getElementById("hideEditorButton");
+const hideConsoleButton = document.getElementById("hideConsoleButton");
+const swapButton = document.getElementById("swapButton");
+const layoutButton = document.getElementById("layoutButton");
+const resetLayoutButton = document.getElementById("resetLayoutButton");
 
 const fileInput = document.getElementById("fileInput");
 const fileNameText = document.getElementById("fileNameText");
 const sandboxFrame = document.getElementById("sandboxFrame");
 const statusText = document.getElementById("statusText");
+const app = document.querySelector(".app");
+const splitter = document.getElementById("splitter");
 
 let liveUpdateTimeout = null;
+let userCodeUrl = null;
+let highlightedLineHandle = null;
+let shouldAutoScrollConsole = true;
 
 let commandHistory = [];
 let commandHistoryIndex = -1;
@@ -103,6 +116,10 @@ function updateFileNameText() {
   fileNameText.textContent = currentFileName;
 }
 
+function safeSourceName(fileName) {
+  return String(fileName || "script.js").replace(/[\r\n]/g, "").replace(/[\\/]/g, "_");
+}
+
 function formatValue(value) {
   if (value === null) {
     return "null";
@@ -135,7 +152,7 @@ function formatValue(value) {
   return String(value);
 }
 
-function addConsoleLine(message, type = "log") {
+function addConsoleLine(message, type = "log", options = {}) {
   const line = document.createElement("div");
 
   line.classList.add("console-line");
@@ -157,23 +174,85 @@ function addConsoleLine(message, type = "log") {
   }
 
   line.textContent = message;
+
+  if (options.lineNumber && options.lineNumber > 0) {
+    line.dataset.lineNumber = String(options.lineNumber);
+    line.title = "Click to show this line in the code editor";
+  }
+
   consoleOutput.appendChild(line);
-  consoleOutput.scrollTop = consoleOutput.scrollHeight;
+  scrollConsoleToBottomIfNeeded();
 }
 
 function clearConsole() {
   consoleOutput.innerHTML = "";
+  enableConsoleAutoScroll();
 }
 
-function runCode() {
-  clearConsole();
+function isConsoleScrolledToBottom() {
+  const distanceFromBottom = consoleOutput.scrollHeight - consoleOutput.scrollTop - consoleOutput.clientHeight;
+  return distanceFromBottom <= 4;
+}
 
-  const userCode = codeEditor.getValue();
+function updateScrollToBottomButton() {
+  const shouldShowButton = !shouldAutoScrollConsole && !isConsoleScrolledToBottom();
+  scrollToBottomButton.classList.toggle("visible", shouldShowButton);
+}
 
-  addConsoleLine("Running " + currentFileName + "...", "system");
+function scrollConsoleToBottom() {
+  consoleOutput.scrollTop = consoleOutput.scrollHeight;
+}
 
-  const html = `
-<!DOCTYPE html>
+function enableConsoleAutoScroll() {
+  shouldAutoScrollConsole = true;
+  scrollConsoleToBottom();
+  updateScrollToBottomButton();
+}
+
+function scrollConsoleToBottomIfNeeded() {
+  if (shouldAutoScrollConsole) {
+    scrollConsoleToBottom();
+  }
+
+  updateScrollToBottomButton();
+}
+
+function clearHighlightedErrorLine() {
+  if (highlightedLineHandle) {
+    highlightedLineHandle.clear();
+    highlightedLineHandle = null;
+  }
+}
+
+function showEditorLine(lineNumber) {
+  if (!lineNumber || lineNumber < 1) {
+    return;
+  }
+
+  if (app.classList.contains("editor-hidden")) {
+    app.classList.remove("editor-hidden");
+    hideEditorButton.textContent = "Hide Code";
+  }
+
+  clearHighlightedErrorLine();
+
+  const zeroBasedLine = lineNumber - 1;
+  highlightedLineHandle = codeEditor.addLineClass(zeroBasedLine, "background", "error-line-highlight");
+  codeEditor.scrollIntoView({
+    line: zeroBasedLine,
+    ch: 0
+  }, 90);
+  codeEditor.setCursor({
+    line: zeroBasedLine,
+    ch: 0
+  });
+  codeEditor.focus();
+}
+
+function getSandboxHtml(scriptUrl) {
+  const safeUrl = scriptUrl.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+
+  return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
@@ -214,11 +293,12 @@ function runCode() {
     return String(value);
   }
 
-  function sendToParent(type, values) {
+  function sendToParent(type, values, lineNumber) {
     parent.postMessage({
       source: "mini-js-editor",
       type: type,
-      values: values.map(formatValue)
+      values: values.map(formatValue),
+      lineNumber: lineNumber || 0
     }, "*");
   }
 
@@ -238,29 +318,53 @@ function runCode() {
     sendToParent("info", Array.from(arguments));
   };
 
+  function getReasonLineNumber(reason) {
+    if (!reason || !reason.stack) {
+      return 0;
+    }
+
+    var match = String(reason.stack).match(/:(\\d+):\\d+\\)?$/m);
+    return match ? Number(match[1]) : 0;
+  }
+
   window.addEventListener("error", function(event) {
     sendToParent("error", [
-      "Error: " + event.message + " on line " + event.lineno
-    ]);
+      event.message
+    ], event.lineno);
   });
 
   window.addEventListener("unhandledrejection", function(event) {
     sendToParent("error", [
       "Promise error: " + event.reason
-    ]);
+    ], getReasonLineNumber(event.reason));
   });
 })();
 <\/script>
 
-<script>
-${userCode}
-<\/script>
+<script src="${safeUrl}"><\/script>
 
 </body>
-</html>
-`;
+</html>`;
+}
 
-  sandboxFrame.srcdoc = html;
+function runCode() {
+  clearConsole();
+  clearHighlightedErrorLine();
+
+  const userCode = codeEditor.getValue();
+
+  addConsoleLine("Running " + currentFileName + "...", "system");
+
+  if (userCodeUrl) {
+    URL.revokeObjectURL(userCodeUrl);
+  }
+
+  const scriptText = userCode + "\n//# sourceURL=" + safeSourceName(currentFileName);
+  userCodeUrl = URL.createObjectURL(new Blob([scriptText], {
+    type: "text/javascript"
+  }));
+
+  sandboxFrame.srcdoc = getSandboxHtml(userCodeUrl);
 }
 
 function executeConsoleCommand() {
@@ -436,12 +540,16 @@ window.addEventListener("message", function (event) {
 
   const type = event.data.type;
   const values = event.data.values;
+  const lineNumber = Number(event.data.lineNumber) || 0;
 
-  addConsoleLine(values.join(" "), type);
+  addConsoleLine(values.join(" "), type, {
+    lineNumber: type === "error" ? lineNumber : 0
+  });
 });
 
 codeEditor.on("change", function () {
   statusText.textContent = "Waiting for typing to stop...";
+  clearHighlightedErrorLine();
 
   clearTimeout(liveUpdateTimeout);
 
@@ -544,7 +652,143 @@ themeButton.addEventListener("click", function () {
   toggleTheme();
 });
 
+settingsButton.addEventListener("click", function (event) {
+  event.stopPropagation();
+  toggleSettingsMenu();
+});
+
+settingsMenuWrap.addEventListener("click", function (event) {
+  event.stopPropagation();
+});
+
+consoleOutput.addEventListener("scroll", function () {
+  shouldAutoScrollConsole = isConsoleScrolledToBottom();
+  updateScrollToBottomButton();
+});
+
+consoleOutput.addEventListener("click", function (event) {
+  const line = event.target.closest(".console-line[data-line-number]");
+
+  if (!line) {
+    return;
+  }
+
+  showEditorLine(Number(line.dataset.lineNumber));
+});
+
+scrollToBottomButton.addEventListener("click", function () {
+  enableConsoleAutoScroll();
+});
+
+function refreshEditorLayout() {
+  window.setTimeout(function () {
+    codeEditor.refresh();
+  }, 0);
+}
+
+function closeSettingsMenu() {
+  settingsMenuWrap.classList.remove("open");
+  settingsButton.setAttribute("aria-expanded", "false");
+}
+
+function toggleSettingsMenu() {
+  const isOpen = settingsMenuWrap.classList.toggle("open");
+  settingsButton.setAttribute("aria-expanded", String(isOpen));
+}
+
+function toggleEditorPanel() {
+  app.classList.remove("console-hidden");
+  app.classList.toggle("editor-hidden");
+  hideEditorButton.textContent = app.classList.contains("editor-hidden") ? "Show Code" : "Hide Code";
+  hideConsoleButton.textContent = "Hide Console";
+  refreshEditorLayout();
+}
+
+function toggleConsolePanel() {
+  app.classList.remove("editor-hidden");
+  app.classList.toggle("console-hidden");
+  hideConsoleButton.textContent = app.classList.contains("console-hidden") ? "Show Console" : "Hide Console";
+  hideEditorButton.textContent = "Hide Code";
+  refreshEditorLayout();
+}
+
+function swapPanels() {
+  app.classList.toggle("swapped");
+  refreshEditorLayout();
+}
+
+function toggleLayoutDirection() {
+  app.classList.toggle("vertical-layout");
+  layoutButton.textContent = app.classList.contains("vertical-layout") ? "Side By Side" : "Top / Down";
+  refreshEditorLayout();
+}
+
+function resetLayout() {
+  app.classList.remove("editor-hidden", "console-hidden", "swapped", "vertical-layout");
+  app.style.setProperty("--editor-size", "50%");
+  hideEditorButton.textContent = "Hide Code";
+  hideConsoleButton.textContent = "Hide Console";
+  layoutButton.textContent = "Top / Down";
+  refreshEditorLayout();
+}
+
+hideEditorButton.addEventListener("click", function () {
+  toggleEditorPanel();
+  closeSettingsMenu();
+});
+
+hideConsoleButton.addEventListener("click", function () {
+  toggleConsolePanel();
+  closeSettingsMenu();
+});
+
+swapButton.addEventListener("click", function () {
+  swapPanels();
+  closeSettingsMenu();
+});
+
+layoutButton.addEventListener("click", function () {
+  toggleLayoutDirection();
+  closeSettingsMenu();
+});
+
+resetLayoutButton.addEventListener("click", function () {
+  resetLayout();
+  closeSettingsMenu();
+});
+
+splitter.addEventListener("pointerdown", function (event) {
+  event.preventDefault();
+  splitter.setPointerCapture(event.pointerId);
+
+  function handlePointerMove(moveEvent) {
+    const rect = app.getBoundingClientRect();
+    const isVertical = app.classList.contains("vertical-layout");
+    const position = isVertical ? moveEvent.clientY - rect.top : moveEvent.clientX - rect.left;
+    const total = isVertical ? rect.height : rect.width;
+    const rawPercent = (position / total) * 100;
+    const editorPercent = app.classList.contains("swapped") ? 100 - rawPercent : rawPercent;
+    const percent = Math.min(85, Math.max(15, editorPercent));
+
+    app.style.setProperty("--editor-size", percent + "%");
+    refreshEditorLayout();
+  }
+
+  function stopDragging(upEvent) {
+    splitter.releasePointerCapture(upEvent.pointerId);
+    window.removeEventListener("pointermove", handlePointerMove);
+    window.removeEventListener("pointerup", stopDragging);
+  }
+
+  window.addEventListener("pointermove", handlePointerMove);
+  window.addEventListener("pointerup", stopDragging);
+});
+
 document.addEventListener("keydown", function (event) {
+  if (event.key === "Escape") {
+    closeSettingsMenu();
+  }
+
   if (event.ctrlKey && event.key.toLowerCase() === "s") {
     event.preventDefault();
     saveFile();
@@ -554,6 +798,10 @@ document.addEventListener("keydown", function (event) {
     event.preventDefault();
     openFile();
   }
+});
+
+document.addEventListener("click", function () {
+  closeSettingsMenu();
 });
 
 loadSavedTheme();
